@@ -1,0 +1,138 @@
+<tool id="gap_filler" name="GapFiller" version="@WRAPPER_VERSION@.0.0">
+    <description>- close gaps within pre-assembled scaffolds</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="1.2.2">bowtie2</requirement>
+        <requirement type="package" version="5.22.2.1">perl</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+perl '$__tool_directory__/GapFiller.pl'
+-l '$library'
+-s '$scaffold'
+#if str($options_type_cond.option_type) == "advanced":
+    #if $options_type_cond.min_overlap:
+        -m $options_type_cond.min_overlap
+    #endif
+    #if $options_type_cond.base_overlap:
+        -o $options_type_cond.base_overlap
+    #endif
+    #if $options_type_cond.min_base_ratio:
+        -r $options_type_cond.min_base_ratio
+    #endif
+    #if $options_type_cond.difference:
+        -d $options_type_cond.difference
+    #endif
+    #if $options_type_cond.min_contig_overlap:
+        -n $options_type_cond.min_contig_overlap
+    #endif
+    #if $options_type_cond.trim:
+        -t $options_type_cond.trim
+    #endif
+    #if $options_type_cond.numiteration:
+        -i $options_type_cond.numiteration
+    #endif
+    #if $options_type_cond.gaps:
+        -g $options_type_cond.gaps
+    #endif
+    #if str($options_type_cond.skip) == "yes":
+        -S
+    #endif
+#endif
+-T \${GALAXY_SLOTS:-4}]]
+&& mv 'intermediate_results/gapfilled*.fa' '$final_fill'
+#if str($options_type_cond.option_type) == "advanced":
+    #if str($options_type_cond.output_closed) == "yes":
+        && mv 'intermediate_results/closed*.txt' '$final_close'
+    #endif
+    #if str($options_type_cond.output_summary) == "yes":
+        && mv 'intermediate_results/summary*.txt' '$final_summary'
+    #endif
+    #if str($options_type_cond.output_filled) == "yes":
+        && mv 'intermediate_results/filled*.txt' '$final_close'
+    #endif
+#endif></command>
+    <inputs>
+        <param name="library" type="data" format="txt" label="Library file"/>
+        <param name="scaffold" type="data" format="fasta" label="Scaffold"/>
+        <conditional name="options_type_cond">
+            <param name="options_type" type="select" label="Options Configuration">
+                <option value="basic" selected="true">Basic</option>
+                <option value="advanced">Advanced</option>
+            </param>
+            <when value="basic"/>
+            <when value="advanced">
+                <param name="min_overlap" type="integer" value="0" label="Minimum reads for base"/>
+                <param name="base_overlap" type="integer" value="0" label="Minimum overlapping bases"/>
+                <param name="min_base_ratio" type="integer" value="0" label="Percentage of reads with single nucleotide extension for closing a gap"/>
+                <param name="difference" type="integer" value="0" label="Maximim difference between gap size and gap-closed nucleotides"/>
+                <param name="min_contig_overlap" type="integer" value="0" label="Minimum contig overlap for merging adjacent sequences"/>
+                <param name="trim" type="integer" value="0" label="Number of reads to trim from beginning of sequence"/>
+                <param name="numiteration" type="integer" value="0" label="Number of iterations to fill gaps"/>
+                <param name="gaps" type="integer" value="0" label="Maximum number of allowed gaps during mapping with Bowtie"/>
+            </when>
+            <param name="skip" type="select" label="Skip successive reading of the input files">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <param name="base_name" type="text" value="" optional="true" label="Base name for the output files"/>
+            <param name="output_summary" type="select" label="Output summary file?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+            <param name="output_closed" type="select" label="Output closed file?">
+                <option value="yes" selected="true">Yes</option>
+                <option value="no">No</option>
+            </param>
+        </conditional>
+        <!-- Required due to the GapFiller license -->
+        <param name="non_commercial_use" label="I certify that I am not using this tool for commercial purposes." type="boolean" truevalue="NON_COMMERCIAL_USE" falsevalue="COMMERCIAL_USE" checked="False">
+            <validator type="expression" message="This tool is only available for non-commercial use.">value == True</validator>
+        </param>
+    </inputs>
+    <outputs>
+        <data name="final_fill" format="fasta" label="${tool.name} (gap filled) on ${on_string}"/>
+        <data name="final_close" format="txt" label="${tool.name} (closed) on ${on_string}">
+            <filter>options_type_cond["options_type"] == "advanced" and options_type_cond["output_closed"] == "yes"</filter>
+        </data>
+        <data name="final_summary" format="txt" label="${tool.name} (summary) on ${on_string}">
+            <filter>options_type_cond["options_type"] == "advanced" and options_type_cond["output_summary"] == "yes"</filter>
+        </data>
+        <data name="final_file" format="txt" label="${tool.name} (filled) on ${on_string}">
+            <filter>options_type_cond["options_type"] == "advanced" and options_type_cond["output_filled"] == "yes"</filter>
+        </data>
+    </outputs>
+    <tests>
+        <test
+        </test>
+    </tests>
+    <help>
+This tool closes gaps within pre-assembled scaffolds. It is unique in offering the possibility to manually control the gap closure process.
+By using the distance information of paired-read data, GapFiller seeks to close the gap from each edge in an iterative manner, yielding
+excellent results both on bacterial and eukaryotic data sets. The input data is given by pre-assembled scaffold sequences (FASTA) and NGS
+paired-read data (FASTA or FASTQ). The final gap-filled scaffolds are provided in FASTA format.
+
+-----
+
+**Required options**
+
+* **Library file** - file containing two paired-read files with insert size, error and orientation indication, usually created by the **Excise Target Genomic Area** tool.
+* **Scaffold** - fasta file containing scaffold sequences used for extension.
+
+**Other options**
+
+* **Minimum reads for base** - minimum number of reads needed to call a base during an extension.
+* **Minimum overlapping bases** - minimum number of overlapping bases with the edge of the gap.
+* **Percentage of reads with single nucleotide extension for closing a gap** - percentage of reads that should have a single nucleotide extension in order to close a gap in a scaffold.
+* **Maximim difference between gap size and gap-closed nucleotides** - maximum difference between the gapsize and the number of gapclosed nucleotides. Extension is stopped if it matches this parameter + gap size.
+* **Minimum contig overlap for merging adjacent sequences** - minimum overlap required between contigs to merge adjacent sequences in a scaffold
+* **Number of reads to trim from beginning of sequence** - number of reads to trim off the beginning of the sequence (usually missambled/low-coverage reads).
+* **Number of iterations to fill gaps** - number of iterations to fill the gaps.
+* **Maximum number of allowed gaps during mapping with Bowtie** - maximum number of allowed gaps during mapping with Bowtie.
+* **Skip successive reading of the input files** - skip reading of the input files again.
+    </help>
+    <citations>
+        <citation type="doi">10.1186/gb-2012-13-6-r56</citation>
+    </citations>
+</tool>
