@@ -1,0 +1,33 @@
+<tool id="create_weighted_qual_file_for_celera" name="Create weighted quality file" version="@WRAPPER_VERSION@.0.0">
+    <description>for Celera</description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="5.22.2.1">perl</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+perl '$__tool_directory__/create_weighted_qual_file-for_celera.pl'
+--input '$input'
+--min '$read1'
+--max '$read2'
+--percent_trim $percent_trim
+--output '$output']]></command>
+    <inputs>
+        <param name="input" type="data" format="fasta" label="Fasta input"/>
+        <param name="min" type="integer" value="0" label="Minimum"/>
+        <param name="max" type="integer" value="0" label="Maximum"/>
+        <param name="percent_trim" type="float" value="0.0" min="0" label="Trim percentage"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="txt"/>
+    </outputs>
+    <tests>
+        <test
+        </test>
+    </tests>
+    <help></help>
+    <citations>
+        <expand macro="citation1" />
+    </citations>
+</tool>
