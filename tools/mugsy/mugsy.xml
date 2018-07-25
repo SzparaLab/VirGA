@@ -1,0 +1,79 @@
+<tool id="mugsy" name="Mugsy" version="@WRAPPER_VERSION@.0.0">
+    <description></description>
+    <macros>
+        <import>macros.xml</import>
+    </macros>
+    <requirements>
+        <requirement type="package" version="1.2.3">mugsy</requirement>
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+mkdir output &&
+export MUGSY_INSTALL=\$(dirname `which mugsy`) &&
+mugsy
+#if str($options_type_cond.options_type) == "advanced":
+  #if str($prefix) != "":
+      --prefix '$prefix'
+  #end if
+  --directory output
+  --distance $options_type_cond.distance
+  --minlength $options_type_cond.minlength
+  --duplications int($options_type_cond.duplications)
+#end if
+#for $i in $input:
+    '${i}'
+#end for]]></command>
+    <inputs>
+        <!-- TODO: the input may need to be a repeat group consisting of fasta file and genome based
+        on this comment in the mugsy help text: The filename is used as the genome name. -->
+        <param name="input" type="data" format="fasta" multiple="true" label="Fasta input"/>
+        <conditional name="options_type_cond">
+            <param name="options_type" type="select" label="Options Configuration">
+                <option value="basic" selected="true">Basic</option>
+                <option value="advanced">Advanced</option>
+            </param>
+            <when value="basic"/>
+            <when value="advanced">
+                <param name="prefix" type="text" value="" optional="true" label="Prefix for the output files"/>
+                <param name="distance" type="integer" value="1000" label="Maximum distance along a bp for chaining anchors into locally colinear blocks"/>
+                <param name="minlength" type="integer" value="30" label="Minimum span of an aligned region in a bp"/>
+                <param name="duplications" type="select" label="Detect and report duplications">
+                    <option value="0" selected="true">No</option>
+                    <option value="1">Yes</option>
+                </param>
+            </when>
+        </conditional>
+    </inputs>
+    <outputs>
+        <collection name="output_maf_colection" type="list" label="${tool.name} on ${on_string}">
+            <discover_datasets pattern="__name__" directory="output" format="maf" />
+        </collection>
+    </outputs>
+    <tests>
+        <test
+        </test>
+    </tests>
+    <help>
+Mugsy is multiple whole genome aligner. Mugsy uses Nucmer for pairwise alignment, a custom graph based segmentation procedure
+for identifying LCBs (synchain-mugsy), and a segment-based progressive multiple alignment strategy from Seqan::TCoffee.
+Mugsy accepts draft genomes in the form of multi-FASTA files. Mugsy does not require a reference genome and is robust in
+the presence of large scale genome flux and genome rearrangments. Mugsy performs best on closely related genomes and has
+been used to align several dozen bacterial genomes.  Mugsy outputs a series of alignments in MAF format.
+
+-----
+
+**Required options**
+
+* **Fasta input** - one or more (multi)FASTA files, one per genome. Each file should contain all the sequences for a single organism/species.
+
+**Other options**
+
+* **Prefix for output files** - prefix for output files.
+* **Maximum distance along a bp for chaining anchors into locally colinear blocks** - maximum distance along a single sequence (bp) for chaining anchors into locally colinear blocks (LCBs).  This is used by the segmentation step synchain-mugsy.
+* **Minimum span of an aligned region in a bp** - minimum span of an aligned region in a colinear block (bp). This is used by the segmentation step synchain-mugsy.
+* **Detect and report duplications** - select "Yes" to detect and report duplications.
+    </help>
+    <citations>
+        <expand macro="citation1" />
+        <citation type="doi">10.1093/bioinformatics/btq665</citation>
+    </citations>
+</tool>
