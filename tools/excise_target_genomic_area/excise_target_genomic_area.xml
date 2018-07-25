@@ -11,7 +11,7 @@ perl '$__tool_directory__/excise_target_genomic_area.pl'
 --read1 '$read1'
 --read2 '$read2'
 --genome '$reference_genome_cond.reference_genome'
---sam_file'$sam_file'
+--sam_file '$sam_file'
 --excise_start $excise_start
 --excise_stop $excise_stop
 --output_library_file '$output_library_file'

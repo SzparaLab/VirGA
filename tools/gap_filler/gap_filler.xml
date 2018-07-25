@@ -14,45 +14,45 @@ perl '$__tool_directory__/GapFiller.pl'
 #if str($options_type_cond.option_type) == "advanced":
     #if $options_type_cond.min_overlap:
         -m $options_type_cond.min_overlap
-    #endif
+    #end if
     #if $options_type_cond.base_overlap:
         -o $options_type_cond.base_overlap
-    #endif
+    #end if
     #if $options_type_cond.min_base_ratio:
         -r $options_type_cond.min_base_ratio
-    #endif
+    #end if
     #if $options_type_cond.difference:
         -d $options_type_cond.difference
-    #endif
+    #end if
     #if $options_type_cond.min_contig_overlap:
         -n $options_type_cond.min_contig_overlap
-    #endif
+    #end if
     #if $options_type_cond.trim:
         -t $options_type_cond.trim
-    #endif
+    #end if
     #if $options_type_cond.numiteration:
         -i $options_type_cond.numiteration
-    #endif
+    #end if
     #if $options_type_cond.gaps:
         -g $options_type_cond.gaps
-    #endif
+    #end if
     #if str($options_type_cond.skip) == "yes":
         -S
-    #endif
-#endif
+    #end if
+#end if
 -T \${GALAXY_SLOTS:-4}]]
 && mv 'intermediate_results/gapfilled*.fa' '$final_fill'
 #if str($options_type_cond.option_type) == "advanced":
     #if str($options_type_cond.output_closed) == "yes":
         && mv 'intermediate_results/closed*.txt' '$final_close'
-    #endif
+    #end if
     #if str($options_type_cond.output_summary) == "yes":
         && mv 'intermediate_results/summary*.txt' '$final_summary'
-    #endif
+    #end if
     #if str($options_type_cond.output_filled) == "yes":
         && mv 'intermediate_results/filled*.txt' '$final_close'
-    #endif
-#endif></command>
+    #end if
+#end if></command>
     <inputs>
         <param name="library" type="data" format="txt" label="Library file"/>
         <param name="scaffold" type="data" format="fasta" label="Scaffold"/>
